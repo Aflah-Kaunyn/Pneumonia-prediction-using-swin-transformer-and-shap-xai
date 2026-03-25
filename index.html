@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pneumonia Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; color: #333; padding: 40px; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { color: #2c3e50; margin-bottom: 20px; }
+        .card { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input[type=file] { margin-bottom: 15px; display: block; }
+        button { background: #3498db; color: #fff; border: none; padding: 12px 30px; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        button:hover { background: #2980b9; }
+        .result-card { background: #e8f6f3; border-left: 4px solid #1abc9c; padding: 20px; margin-bottom: 20px; }
+        .prob-item { display: flex; justify-content: space-between; margin: 6px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; }
+        img { max-width: 100%; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Pneumonia Prediction</h1>
+
+    <div class="card">
+        <form action="/predict" method="POST" enctype="multipart/form-data">
+            <label><strong>Upload an Image:</strong></label>
+            <input type="file" name="file" accept=".jpg,.jpeg,.png" required>
+            <button type="submit">Predict</button>
+        </form>
+    </div>
+
+    {% if prediction %}
+    <div class="result-card">
+        <h2>Prediction: {{ prediction }}</h2>
+        {% if confidence %}
+        <p>Confidence: {{ confidence }}</p>
+        {% endif %}
+    </div>
+
+    {% if all_probabilities %}
+    <div class="card">
+        <h3>All Predictions</h3>
+        {% for label, prob in all_probabilities.items() %}
+        <div class="prob-item">
+            <span>{{ label }}</span>
+            <span><strong>{{ prob }}</strong></span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <form action="/explain" method="POST">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            <input type="hidden" name="prediction" value="{{ prediction }}">
+            <button type="submit">Generate Explanation</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if shap_visualization %}
+        <div class="card shap-section">
+            <h3>🔍 SHAP Explainability</h3>
+            
+            <div class="shap-info">
+                <p><strong>What does this show?</strong></p>
+                <p>This visualization highlights which regions of the X-ray the AI model focused on when making its prediction.</p>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-box" style="background: linear-gradient(to right, #ff6b6b, #d32f2f);"></div>
+                        <span><strong>Red:</strong> High importance</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background: linear-gradient(to right, #90caf9, #1976d2);"></div>
+                        <span><strong>Blue:</strong> Low importance</span>
+                    </div>
+                </div>        
+                <img src="data:image/png;base64,{{ shap_visualization }}" alt="SHAP Visualization">
+            </div>
+        </div>   
+    {% endif %}
+</div>
+</body>
+</html>
